@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        input, button { padding: 10px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Register</h2>
+    <form id="registerForm">
+        <input type="email" id="registerEmail" name="email" placeholder="Email" required>
+        <input type="text" id="registerUsername" name="username" placeholder="Username" required>
+        <input type="password" id="registerPassword" name="password" placeholder="Password" required>
+        <button type="submit">Register</button>
+    </form>
+    <p id="registerMessage"></p>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="email" id="loginEmail" name="email" placeholder="Email" required>
+        <input type="password" id="loginPassword" name="password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+    <p id="loginMessage"></p>
+
+    <h2>Products</h2>
+    <div id="productList"></div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let requestData = {
+                email: document.getElementById("registerEmail").value,
+                username: document.getElementById("registerUsername").value,
+                password: document.getElementById("registerPassword").value
+            };
+
+            console.log("Registering with data:", requestData);
+
+            fetch("/register", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("registerMessage").innerText = data.message;
+            })
+            .catch(err => console.error("Error:", err));
+        });
+
+        document.getElementById("loginForm").addEventListener("submit", function(event) {
+            event.preventDefault();
+            let requestData = {
+                email: document.getElementById("loginEmail").value,
+                password: document.getElementById("loginPassword").value
+            };
+
+            console.log("Logging in with data:", requestData);
+
+            fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(requestData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.token) {
+                    document.getElementById("loginMessage").innerText = "Login successful!";
+                    localStorage.setItem("token", data.token); // Store token
+                } else {
+                    document.getElementById("loginMessage").innerText = "Invalid credentials!";
+                }
+            })
+            .catch(err => console.error("Error:", err));
+        });
+
+        function loadProducts() {
+            fetch("/products")
+            .then(res => res.json())
+            .then(products => {
+                let productList = document.getElementById("productList");
+                productList.innerHTML = "";
+                products.forEach(product => {
+                    let item = document.createElement("div");
+                    item.innerHTML = `<strong>${product.name}</strong> - $${product.price} - Stock: ${product.stock}`;
+                    productList.appendChild(item);
+                });
+            })
+            .catch(err => console.error("Error:", err));
+        }
+
+        loadProducts();
+    </script>
+</body>
+</html>
